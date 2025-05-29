@@ -9,18 +9,18 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <!-- <a href="https://github.com/mgnfy-view/foundry-starter-template-v2">
+  <!-- <a href="https://github.com/mgnfy-view/payment-splitter">
     <img src="assets/icon.svg" alt="Logo" width="80" height="80">
   </a> -->
 
-  <h3 align="center">Project Name</h3>
+  <h3 align="center">Payment Splitter</h3>
 
   <p align="center">
-    Description
+    A better, more comprehensive version of Openzeppelin's payment splitter contract.
     <br />
-    <a href="https://github.com/mgnfy-view/foundry-starter-template-v2/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    <a href="https://github.com/mgnfy-view/payment-splitter/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
-    <a href="https://github.com/mgnfy-view/foundry-starter-template-v2/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/mgnfy-view/payment-splitter/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
 
@@ -52,7 +52,7 @@
 
 ## About The Project
 
-Project description goes here.
+A better, more comprehensive version of Openzeppelin's payment splitter contract.
 
 ### Built With
 
@@ -66,24 +66,24 @@ Project description goes here.
 
 ### Prerequisites
 
--
+Make sure you have git, rust, foundry, and soldeer installed and configured on your system.
 
 ### Installation
 
 Clone the repo,
 
 ```shell
-git clone https://github.com/mgnfy-view/foundry-starter-template-v2.git
+git clone https://github.com/mgnfy-view/payment-splitter.git
 ```
 
 cd into the repo, install the necessary dependencies, and build the project,
 
 ```shell
-cd foundry-starter-template-v2
+cd payment-splitter
 make
 ```
 
-Run tests by executing
+Run tests by executing,
 
 ```shell
 forge test
@@ -99,7 +99,7 @@ That's it, you are good to go now!
 -   [ ] Testing
 -   [ ] Documentation
 
-See the [open issues](https://github.com/mgnfy-view/foundry-starter-template-v2/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/mgnfy-view/payment-splitter/issues) for a full list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
 
@@ -133,14 +133,14 @@ Here's a gateway to all my socials, don't forget to hit me up!
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/mgnfy-view/foundry-starter-template-v2.svg?style=for-the-badge
-[contributors-url]: https://github.com/mgnfy-view/foundry-starter-template-v2/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/mgnfy-view/foundry-starter-template-v2.svg?style=for-the-badge
-[forks-url]: https://github.com/mgnfy-view/foundry-starter-template-v2/network/members
-[stars-shield]: https://img.shields.io/github/stars/mgnfy-view/foundry-starter-template-v2.svg?style=for-the-badge
-[stars-url]: https://github.com/mgnfy-view/foundry-starter-template-v2/stargazers
-[issues-shield]: https://img.shields.io/github/issues/mgnfy-view/foundry-starter-template-v2.svg?style=for-the-badge
-[issues-url]: https://github.com/mgnfy-view/foundry-starter-template-v2/issues
-[license-shield]: https://img.shields.io/github/license/mgnfy-view/foundry-starter-template-v2.svg?style=for-the-badge
-[license-url]: https://github.com/mgnfy-view/foundry-starter-template-v2/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/mgnfy-view/payment-splitter.svg?style=for-the-badge
+[contributors-url]: https://github.com/mgnfy-view/payment-splitter/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/mgnfy-view/payment-splitter.svg?style=for-the-badge
+[forks-url]: https://github.com/mgnfy-view/payment-splitter/network/members
+[stars-shield]: https://img.shields.io/github/stars/mgnfy-view/payment-splitter.svg?style=for-the-badge
+[stars-url]: https://github.com/mgnfy-view/payment-splitter/stargazers
+[issues-shield]: https://img.shields.io/github/issues/mgnfy-view/payment-splitter.svg?style=for-the-badge
+[issues-url]: https://github.com/mgnfy-view/payment-splitter/issues
+[license-shield]: https://img.shields.io/github/license/mgnfy-view/payment-splitter.svg?style=for-the-badge
+[license-url]: https://github.com/mgnfy-view/payment-splitter/blob/master/LICENSE.txt
 [linktree-url]: https://linktr.ee/mgnfy.view
