@@ -1,6 +1,6 @@
 -include .env
 
-all : install build
+all : install fbuild
 
 install :; forge soldeer install
 
@@ -19,3 +19,11 @@ snapshot :; forge snapshot
 anvil :; anvil -m 'test test test test test test test test test test test junk' --steps-tracing --block-time 1
 
 precommit :; forge fmt && git add .
+
+deploy-payment-splitter :; forge script script/DeployPaymentSplitter.s.sol \
+	--rpc-url $(RPC_URL) \
+	--private-key $(PRIVATE_KEY) \
+	--verify \
+	--etherscan-api-key $(ETHERSCAN_API_KEY) \
+	--broadcast \
+	-vvvv
