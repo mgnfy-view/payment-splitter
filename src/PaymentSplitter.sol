@@ -12,23 +12,40 @@ import { IPaymentSplitter } from "@src/interfaces/IPaymentSplitter.sol";
 import { NativeWrapper } from "@src/NativeWrapper.sol";
 import { SanityChecks } from "@src/utils/SanityChecks.sol";
 
+/// @title PaymentSplitter.
+/// @author mgnfy-view.
+/// @notice A better, more comprehensive version of Openzeppelin's payment splitter, providing
+/// more control over payee management.
 contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20;
 
+    /// @dev Scaling factor to be used for accumulated payment per share.
     uint256 internal constant SCALING_FACTOR = 1e18;
+    /// @dev Caching this contract's address.
     address internal immutable i_thisAddress;
 
+    /// @dev A set of tokens supported for payment.
     EnumerableSet.AddressSet internal s_supportedTokens;
+    /// @dev Config associated with each supported token.
     mapping(address token => TokenConfig config) internal s_tokenConfig;
+    /// @dev Tells if the payment for a given token is freezed or not. If yes,
+    /// payees cannot collect their payment until unfreezed.
     mapping(address token => bool isFreezed) internal s_freezedPayment;
+    /// @dev List of payee addresses per supported token.
     mapping(address token => EnumerableSet.AddressSet payees) internal s_payees;
+    /// @dev Details of each payee for a given token.
     mapping(address token => mapping(address payee => PayeeDetails details)) internal s_payeeDetails;
 
+    /// @notice Initializes the contract.
+    /// @param _owner The initial owner address.
+    /// @param _wrappedNative Address of the wrapped native token.
     constructor(address _owner, address _wrappedNative) Ownable(_owner) NativeWrapper(_wrappedNative) {
         i_thisAddress = address(this);
     }
 
+    /// @notice Support a token for payment. Owner only function.
+    /// @param _token The token address.
     function addToken(address _token) external onlyOwner {
         SanityChecks.requireNotAddressZero(_token);
         if (s_supportedTokens.contains(_token)) {
@@ -41,6 +58,9 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit TokenAdded(_token);
     }
 
+    /// @notice Removes a token from the supported tokens list. This is only possible
+    /// if all the payees have been removed for that token.
+    /// @param _token The token address.
     function removeToken(address _token) external onlyOwner {
         _requireIsSupportedToken(_token);
         if (s_tokenConfig[_token].totalShares != 0) {
@@ -53,6 +73,11 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit TokenRemoved(_token);
     }
 
+    /// @notice Allows the owner to set new payees per token, modify the shares of existing
+    /// payees, or remove existing payees.
+    /// @param _payees A list of payee addresses.
+    /// @param _tokens A list of token addresses.
+    /// @param _shares A list of shares to assign per payee.
     function setPayees(address[] memory _payees, address[] memory _tokens, uint256[] memory _shares) external {
         uint256 length = _payees.length;
 
@@ -80,6 +105,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit PayeesAdded(_payees, _tokens, _shares);
     }
 
+    /// @notice Toggles payment freezing/unfreezing.
+    /// @param _token The token address.
     function togglePaymentFreeze(address _token) external onlyOwner {
         _requireIsSupportedToken(_token);
 
@@ -88,6 +115,11 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit PaymentFreezeToggled(_token, s_freezedPayment[_token]);
     }
 
+    /// @notice Releases payment for a token as per the share of a given payee.
+    /// @param _token The payment token address.
+    /// @param _payee The address of the payee.
+    /// @param _unwrap If the token is wrapped native token (for example, WETH), whether to
+    /// unwrap it and send it back as raw gas token.
     function release(address _token, address _payee, bool _unwrap) public {
         _requireIsSupportedToken(_token);
         _requireIsValidPayee(_token, _payee);
@@ -109,20 +141,31 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit ReleasedPayment(_token, _payee);
     }
 
+    /// @notice Reverts if the given token is not supported token.
+    /// @param _token The token address.
     function _requireIsSupportedToken(address _token) internal view {
         if (!s_supportedTokens.contains(_token)) {
             revert PaymentSplitter__TokenNotSupported(_token);
         }
     }
 
+    /// @notice Reverts if the given payee is not in the payee list for the given
+    /// token.
+    /// @param _token The token address.
+    /// @param _payee The address of the payee.
     function _requireIsValidPayee(address _token, address _payee) internal view {
         if (!s_payees[_token].contains(_payee)) revert PaymentSplitter__NotValidPayee(_token, _payee);
     }
 
+    /// @notice Reverts if payment for the given token is freezed.
+    /// @param _token The token address.
     function _requirePaymentIsNotFreezed(address _token) internal view {
         if (s_freezedPayment[_token]) revert PaymentSplitter__PaymentFreezed(_token);
     }
 
+    /// @notice Updates the config for a given token. Updates the payment per share
+    /// if any payment is received after the last update.
+    /// @param _token The token address.
     function _updateTokenConfig(address _token) internal {
         TokenConfig memory tokenConfig = s_tokenConfig[_token];
 
@@ -131,6 +174,13 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         s_tokenConfig[_token].accumulatedPaymentPerShare += (balanceIncrease * SCALING_FACTOR) / tokenConfig.totalShares;
     }
 
+    /// @notice Transfers payment token to the payee. If the token is wrapped native
+    /// token and unwrapping is requested, it unwraps the wrapped token to gas token and then sends it.
+    /// @param _token The token address.
+    /// @param _amount The amount to release.
+    /// @param _payee The payee address.
+    /// @param _unwrap Whether to unwrap the wrapped native token or not. Ignored if the payment token is
+    /// not wrapped native token.
     function _transferPayment(address _token, uint256 _amount, address _payee, bool _unwrap) internal {
         if (_token == address(i_wrappedNative) && _unwrap) {
             i_wrappedNative.withdraw(_amount);
@@ -142,5 +192,54 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         }
 
         IERC20(_token).safeTransfer(_payee, _amount);
+    }
+
+    /// @notice Gets a list of supported payment tokens.
+    /// @return An array of supported payment tokens.
+    function getSupportedTokens() external view returns (address[] memory) {
+        return s_supportedTokens.values();
+    }
+
+    /// @notice Gets the supported payment token at given index.
+    /// @return The payment token address.
+    function getSupportedTokenAt(uint256 _index) external view returns (address) {
+        return s_supportedTokens.at(_index);
+    }
+
+    /// @notice Gets the config for a given payment token.
+    /// @param _token The token address.
+    /// @return The token config struct.
+    function getTokenConfig(address _token) external view returns (TokenConfig memory) {
+        return s_tokenConfig[_token];
+    }
+
+    /// @notice Checks if payment is freezed or not for the given token.
+    /// @param _token The token address.
+    /// @return A bool indicating whether payment is freezed or not for the given token.
+    function isPaymentFreezed(address _token) external view returns (bool) {
+        return s_freezedPayment[_token];
+    }
+
+    /// @notice Gets the payees for a given payment token.
+    /// @param _token The token address.
+    /// @return A list of payees.
+    function getPayees(address _token) external view returns (address[] memory) {
+        return s_payees[_token].values();
+    }
+
+    /// @notice Gets the payees for a given payment token at the given index.
+    /// @param _token The token address.
+    /// @param _index The index number.
+    /// @return The payee address.
+    function payeeAt(address _token, uint256 _index) external view returns (address) {
+        return s_payees[_token].at(_index);
+    }
+
+    /// @notice Gets the details for a given token and a given payee.
+    /// @param _token The token address.
+    /// @param _payee The payee address.
+    /// @return The payee details struct.
+    function getPayeeDetails(address _token, address _payee) external view returns (PayeeDetails memory) {
+        return s_payeeDetails[_token][_payee];
     }
 }
