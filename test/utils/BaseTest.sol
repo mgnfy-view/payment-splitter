@@ -27,5 +27,8 @@ contract BaseTest is Test {
         usdc = new Token("Circle USD", "USDC");
 
         paymentSplitter = new PaymentSplitter(owner, address(wrappedNative));
+
+        vm.prank(owner);
+        paymentSplitter.addToken(address(wrappedNative));
     }
 }
