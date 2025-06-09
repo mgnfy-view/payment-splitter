@@ -17,7 +17,7 @@ contract BaseTest is Test {
 
     PaymentSplitter public paymentSplitter;
 
-    function setUp() public {
+    function setUp() public virtual {
         owner = makeAddr("owner");
         users.push(makeAddr("user1"));
         users.push(makeAddr("user2"));
