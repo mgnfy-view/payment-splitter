@@ -8,5 +8,8 @@ import { IPaymentSplitter } from "@src/interfaces/IPaymentSplitter.sol";
 import { BaseTest } from "@test/utils/BaseTest.sol";
 
 contract InitializationTests is BaseTest {
-    function test_checkInitialization() external { }
+    function test_checkInitialization() external view {
+        assertEq(paymentSplitter.owner(), owner);
+        assertEq(paymentSplitter.getWrappedNativeToken(), address(wrappedNative));
+    }
 }
