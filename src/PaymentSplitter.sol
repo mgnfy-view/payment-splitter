@@ -127,12 +127,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
 
         _updateTokenConfig(_token);
 
-        TokenConfig memory tokenConfig = s_tokenConfig[_token];
-        PayeeDetails memory payeeDetails = s_payeeDetails[_token][_payee];
-
-        uint256 paymentOwed =
-            ((tokenConfig.accumulatedPaymentPerShare * payeeDetails.shares) - payeeDetails.paymentDebt) / SCALING_FACTOR;
-        s_payeeDetails[_token][_payee].paymentDebt = tokenConfig.accumulatedPaymentPerShare;
+        uint256 paymentOwed = getPendingPayment(_token, _payee);
+        s_payeeDetails[_token][_payee].paymentDebt = s_tokenConfig[_token].accumulatedPaymentPerShare;
 
         _transferPayment(_token, paymentOwed, _payee, _unwrap);
 
@@ -241,5 +237,17 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
     /// @return The payee details struct.
     function getPayeeDetails(address _token, address _payee) external view returns (PayeeDetails memory) {
         return s_payeeDetails[_token][_payee];
+    }
+
+    /// @notice Gets the outstanding payment for a given payee for the given token.
+    /// @param _token The token address.
+    /// @param _payee The payee address.
+    /// @return The outstanding payment for a given payee for the given token.
+    function getPendingPayment(address _token, address _payee) public view returns (uint256) {
+        TokenConfig memory tokenConfig = s_tokenConfig[_token];
+        PayeeDetails memory payeeDetails = s_payeeDetails[_token][_payee];
+
+        return
+            ((tokenConfig.accumulatedPaymentPerShare * payeeDetails.shares) - payeeDetails.paymentDebt) / SCALING_FACTOR;
     }
 }

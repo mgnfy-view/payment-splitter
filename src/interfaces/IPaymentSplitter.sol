@@ -48,4 +48,5 @@ interface IPaymentSplitter {
     function getPayees(address _token) external view returns (address[] memory);
     function payeeAt(address _token, uint256 _index) external view returns (address);
     function getPayeeDetails(address _token, address _payee) external view returns (PayeeDetails memory);
+    function getPendingPayment(address _token, address _payee) external view returns (uint256);
 }
