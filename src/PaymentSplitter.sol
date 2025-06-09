@@ -85,6 +85,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         SanityChecks.requireEqual(_tokens.length, _shares.length);
 
         for (uint256 i = 0; i < length; ++i) {
+            _requireIsSupportedToken(_tokens[i]);
+
             if (s_payees[_tokens[i]].contains(_payees[i])) {
                 release(_tokens[i], _payees[i], false);
                 s_tokenConfig[_tokens[i]].totalShares -= s_payeeDetails[_tokens[i]][_payees[i]].shares;
@@ -96,6 +98,9 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
                     delete s_payeeDetails[_tokens[i]][_payees[i]];
                 }
             } else {
+                _updateTokenConfig(_tokens[i]);
+
+                s_payees[_tokens[i]].add(_payees[i]);
                 uint256 paymentDebt = s_tokenConfig[_tokens[i]].accumulatedPaymentPerShare * _shares[i];
                 s_payeeDetails[_tokens[i]][_payees[i]] = PayeeDetails({ shares: _shares[i], paymentDebt: paymentDebt });
                 s_tokenConfig[_tokens[i]].totalShares += _shares[i];
@@ -128,7 +133,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         _updateTokenConfig(_token);
 
         uint256 paymentOwed = getPendingPayment(_token, _payee);
-        s_payeeDetails[_token][_payee].paymentDebt = s_tokenConfig[_token].accumulatedPaymentPerShare;
+        s_payeeDetails[_token][_payee].paymentDebt =
+            s_tokenConfig[_token].accumulatedPaymentPerShare * s_payeeDetails[_token][_payee].shares;
 
         _transferPayment(_token, paymentOwed, _payee, _unwrap);
 
@@ -165,9 +171,14 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
     function _updateTokenConfig(address _token) internal {
         TokenConfig memory tokenConfig = s_tokenConfig[_token];
 
-        uint256 balanceIncrease = IERC20(_token).balanceOf(i_thisAddress) - tokenConfig.lastBalanceTracked;
+        uint256 balance = IERC20(_token).balanceOf(i_thisAddress);
+        uint256 balanceIncrease = balance - tokenConfig.lastBalanceTracked;
 
-        s_tokenConfig[_token].accumulatedPaymentPerShare += (balanceIncrease * SCALING_FACTOR) / tokenConfig.totalShares;
+        if (balanceIncrease > 0) {
+            s_tokenConfig[_token].accumulatedPaymentPerShare +=
+                (balanceIncrease * SCALING_FACTOR) / tokenConfig.totalShares;
+            s_tokenConfig[_token].lastBalanceTracked = balance;
+        }
     }
 
     /// @notice Transfers payment token to the payee. If the token is wrapped native
