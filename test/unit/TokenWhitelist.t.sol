@@ -65,4 +65,15 @@ contract TokenWhitelistTests is BaseTest {
         );
         paymentSplitter.removeToken(address(wrappedNative));
     }
+
+    function test_removingWhitelistedTokenTransfersAnyResidueAmountToOwner() external {
+        uint256 amount = 1 ether;
+
+        _sendPayment(address(wrappedNative), amount);
+
+        vm.prank(owner);
+        paymentSplitter.removeToken(address(wrappedNative));
+
+        assertEq(wrappedNative.balanceOf(owner), amount);
+    }
 }

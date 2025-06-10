@@ -58,7 +58,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         emit TokenAdded(_token);
     }
 
-    /// @notice Removes a token from the supported tokens list. This is only possible
+    /// @notice Removes a token from the supported tokens list. Any residue token amount
+    /// in the contract is transferred to the owner. This is only possible
     /// if all the payees have been removed for that token.
     /// @param _token The token address.
     function removeToken(address _token) external onlyOwner {
@@ -66,6 +67,9 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
         if (s_tokenConfig[_token].totalShares != 0) {
             revert PaymentSplitter__CannotRemoveToken(_token);
         }
+
+        uint256 balance = IERC20(_token).balanceOf(i_thisAddress);
+        IERC20(_token).safeTransfer(msg.sender, balance);
 
         s_supportedTokens.remove(_token);
         delete s_tokenConfig[_token];
@@ -195,6 +199,8 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
 
             if (success) {
                 return;
+            } else {
+                i_wrappedNative.deposit{ value: _amount }();
             }
         }
 

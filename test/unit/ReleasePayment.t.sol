@@ -5,6 +5,7 @@ import { console } from "forge-std-1.9.7/src/console.sol";
 
 import { IPaymentSplitter } from "@src/interfaces/IPaymentSplitter.sol";
 
+import { NativeTokenRejector } from "@test/mocks/NativeTokenRejector.sol";
 import { BaseTest } from "@test/utils/BaseTest.sol";
 
 contract ReleasePaymentTests is BaseTest {
@@ -178,5 +179,48 @@ contract ReleasePaymentTests is BaseTest {
         paymentSplitter.setPayees(payees, tokens, shares);
 
         assertEq(wrappedNative.balanceOf(users[1]), amount / 2);
+    }
+
+    function test_releasePaymentInNativeToken() external {
+        amount = 1 ether;
+
+        vm.deal(owner, amount);
+        (bool success,) = payable(address(paymentSplitter)).call{ value: amount }("");
+
+        if (!success) revert();
+
+        paymentSplitter.release(address(wrappedNative), users[0], true);
+        paymentSplitter.release(address(wrappedNative), users[1], true);
+
+        assertEq(users[0].balance, amount / 2);
+        assertEq(users[1].balance, amount / 2);
+    }
+
+    function test_releasePaymentInNativeTokenWithFallback() external {
+        address nativeTokenRejector = address(new NativeTokenRejector());
+
+        address[] memory payees = new address[](1);
+        payees[0] = nativeTokenRejector;
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(wrappedNative);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 5000;
+
+        vm.prank(owner);
+        paymentSplitter.setPayees(payees, tokens, shares);
+
+        amount = 1 ether;
+
+        vm.deal(owner, amount);
+        (bool success,) = payable(address(paymentSplitter)).call{ value: amount }("");
+
+        if (!success) revert();
+
+        paymentSplitter.release(address(wrappedNative), users[0], false);
+        paymentSplitter.release(address(wrappedNative), users[1], false);
+        paymentSplitter.release(address(wrappedNative), nativeTokenRejector, true);
+
+        assertEq(nativeTokenRejector.balance, 0);
+        assertEq(wrappedNative.balanceOf(users[1]), amount / 3);
     }
 }

@@ -19,7 +19,9 @@ abstract contract NativeWrapper is INativeWrapper {
 
     /// @notice Receives gas token and wraps it.
     receive() external payable {
-        i_wrappedNative.deposit{ value: msg.value }();
+        if (msg.sender != address(i_wrappedNative)) {
+            i_wrappedNative.deposit{ value: msg.value }();
+        }
     }
 
     /// @notice Gets the wrapped native token contract address.
