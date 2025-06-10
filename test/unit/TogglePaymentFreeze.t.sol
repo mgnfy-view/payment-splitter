@@ -25,12 +25,7 @@ contract TogglePaymentFreezeTests is BaseTest {
 
         amount = 1 ether;
 
-        vm.deal(owner, amount);
-
-        vm.prank(owner);
-        (bool success,) = payable(address(paymentSplitter)).call{ value: amount }("");
-
-        if (!success) revert();
+        _sendPayment(address(wrappedNative), amount);
     }
 
     function test_freezePayment() external {
@@ -59,7 +54,7 @@ contract TogglePaymentFreezeTests is BaseTest {
         IPaymentSplitter.TokenConfig memory tokenConfig = paymentSplitter.getTokenConfig(address(wrappedNative));
         IPaymentSplitter.PayeeDetails memory userDetails =
             paymentSplitter.getPayeeDetails(address(wrappedNative), users[0]);
-        uint256 expectedAccumulatedPaymentPerShare = (amount * 1e18) / userDetails.shares;
+        uint256 expectedAccumulatedPaymentPerShare = (amount * SCALING_FACTOR) / userDetails.shares;
 
         assertEq(tokenConfig.lastBalanceTracked, 0);
         assertEq(tokenConfig.accumulatedPaymentPerShare, expectedAccumulatedPaymentPerShare);

@@ -238,7 +238,7 @@ contract PaymentSplitter is Ownable2Step, NativeWrapper, IPaymentSplitter {
     /// @param _token The token address.
     /// @param _index The index number.
     /// @return The payee address.
-    function payeeAt(address _token, uint256 _index) external view returns (address) {
+    function getPayeeAt(address _token, uint256 _index) external view returns (address) {
         return s_payees[_token].at(_index);
     }
 

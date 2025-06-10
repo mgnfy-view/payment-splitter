@@ -46,7 +46,7 @@ interface IPaymentSplitter {
     function getTokenConfig(address _token) external view returns (TokenConfig memory);
     function isPaymentFreezed(address _token) external view returns (bool);
     function getPayees(address _token) external view returns (address[] memory);
-    function payeeAt(address _token, uint256 _index) external view returns (address);
+    function getPayeeAt(address _token, uint256 _index) external view returns (address);
     function getPayeeDetails(address _token, address _payee) external view returns (PayeeDetails memory);
     function getPendingPayment(address _token, address _payee) external view returns (uint256);
 }
