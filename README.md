@@ -52,7 +52,11 @@
 
 ## About The Project
 
-A better, more comprehensive version of Openzeppelin's payment splitter contract.
+This payment splitter is an improvement over OpenZeppelin's implementation, which was deprecated starting from v5.0.0. It provides additional capabilities to manage payees (adding, removing, or modifying their shares at any time) and includes other features such as tracking supported tokens for payments and freezing/unfreezing payment functionality.
+
+The payment splitter borrows the concept of `accumulatedRewardPerToken` (used as `accumulatedPaymentPerShare` in this context) from Sushiswap's MasterChef staking algorithm. The payment pool for a token is treated as a staking pool that receives payments as rewards over time. Adding payees to supported payment pools is equivalent to staking in those pools with associated shares. Adding, removing, or modifying a payee's share triggers payment distribution for that payee and updates the global `accumulatedPaymentPerShare`.
+
+However, this increased control comes with more complex configuration requirements. Each token to be supported for payments must be manually whitelisted. Additionally, payees must be managed separately for each supported token.
 
 ### Built With
 
@@ -66,7 +70,7 @@ A better, more comprehensive version of Openzeppelin's payment splitter contract
 
 ### Prerequisites
 
-Make sure you have git, rust, foundry, and soldeer installed and configured on your system.
+Make sure you have git, make, rust, foundry, and soldeer installed and configured on your system.
 
 ### Installation
 
@@ -95,9 +99,10 @@ That's it, you are good to go now!
 
 ## Roadmap
 
--   [ ] Smart contract development
--   [ ] Testing
--   [ ] Documentation
+-   [x] Smart contract development
+-   [x] Testing
+-   [ ] Fuzz testing
+-   [x] Documentation
 
 See the [open issues](https://github.com/mgnfy-view/payment-splitter/issues) for a full list of proposed features (and known issues).
 
